@@ -74,9 +74,10 @@ INSERT INTO responses (vacancy_id, resume_id, created_at)
 SELECT
     v.id,
     r.id,
-    r.created_at + ((random() * (current_date - r.created_at))::int)
+    GREATEST(v.created_at, r.created_at) +
+        ((random() * (current_date - GREATEST(v.created_at, r.created_at)))::int)
 FROM vacancies v
 INNER JOIN resumes r
 ON r.desired_position = v.title
-WHERE v.created_at < r.created_at AND v.is_active = true AND r.is_active = true
-  AND r.area_id = v.area_id AND v.compensation_to > r.compensation_from AND random() < 0.3;
+WHERE v.is_active = true AND r.is_active = true AND r.area_id = v.area_id
+  AND v.compensation_to > r.compensation_from AND random() < 0.3;
