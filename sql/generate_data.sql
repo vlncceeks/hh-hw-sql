@@ -10,9 +10,10 @@ VALUES ('Python разработчик'),
         ('Врач'),
         ('Системный администратор');
 
-INSERT INTO vacancies (title, compensation_from, compensation_to, area_id, created_at, is_active)
+INSERT INTO vacancies (title, specialization_id, compensation_from, compensation_to, area_id, created_at, is_active)
 SELECT
-    (SELECT name FROM specializations WHERE id = spec_id) as title,
+    (SELECT name FROM specializations s WHERE s.specialization_id = spec_id) as title,
+    spec_id,
     compensation_from,
     compensation_from + compensation_delta,
     area_id,
@@ -40,9 +41,10 @@ FROM (
     FROM generate_series(1, 10000)
 ) as alias;
 
-INSERT INTO resumes (desired_position, compensation_from, compensation_to, area_id, created_at, is_active)
+INSERT INTO resumes (desired_position, specialization_id, compensation_from, compensation_to, area_id, created_at, is_active)
 SELECT
-    (SELECT name FROM specializations WHERE id = spec_id) as desired_position,
+    (SELECT name FROM specializations s WHERE s.specialization_id = spec_id) as desired_position,
+    spec_id,
     compensation_from,
     compensation_from + compensation_delta,
     area_id,
@@ -75,9 +77,9 @@ SELECT
     v.id,
     r.id,
     GREATEST(v.created_at, r.created_at) +
-        ((random() * (current_date - GREATEST(v.created_at, r.created_at)))::int)
+        (random() * (current_date - GREATEST(v.created_at, r.created_at)))
 FROM vacancies v
 INNER JOIN resumes r
-ON r.desired_position = v.title
+ON r.specialization_id = v.specialization_id
 WHERE v.is_active = true AND r.is_active = true AND r.area_id = v.area_id
-  AND v.compensation_to > r.compensation_from AND random() < 0.3;
+  AND v.compensation_to > r.compensation_from AND random() < 0.6;
